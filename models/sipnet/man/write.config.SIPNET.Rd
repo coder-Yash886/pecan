@@ -105,6 +105,20 @@ the template or \code{defaults$constants} are used unless overridden. PFT trait 
 in \code{trait.values} override constants and template defaults. Initial condition
 values passed via \code{IC} or \code{poolinitcond} take highest precedence, including
 explicit zero values.
+
+For SIPNET v2 nitrogen-cycle parameters, the same precedence applies:
+\itemize{
+\item \code{plantStorageNInit} (g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) is set from \code{IC$plantStorageNInit} or the
+  \code{plantStorageNInit} variable in the poolinitcond file if present; the template
+  default (5 g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) is kept otherwise.
+\item \code{soilOrgNInit} (g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) is set from \code{IC$soil_organic_nitrogen_content}
+  (kg N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}, unit-converted) or the \code{soil_organic_nitrogen_content} netCDF variable
+  in the poolinitcond file if present; the template default (135 g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) is kept
+  and logged otherwise.
+\item \code{litterOrgNInit} (g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) follows the same pattern using
+  \code{IC$litter_organic_nitrogen_content} or the \code{litter_organic_nitrogen_content}
+  netCDF variable; the template default (14 g N m\if{html}{\out{&#8315;&sup2;}}{^{-2}}) is kept and logged otherwise.
+}
 }
 
 \author{

@@ -868,6 +868,26 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
     if ("soil" %in% ic.names) {
       param[which(param[, 1] == "soilInit"), 2] <- IC$soil
     }
+    ## soilOrgNInit gN/m2 (v2 only)
+    if (caps$has_n_cycle && "soil_organic_nitrogen_content" %in% ic.names) {
+      param[which(param[, 1] == "soilOrgNInit"), 2] <-
+        PEcAn.utils::ud_convert(IC$soil_organic_nitrogen_content, "kg m-2", "g m-2")
+    } else if (caps$has_n_cycle) {
+      PEcAn.logger::logger.info(
+        "soilOrgNInit not in IC; keeping template default of",
+        param[which(param[, 1] == "soilOrgNInit"), 2], "g N m-2"
+      )
+    }
+    ## litterOrgNInit gN/m2 (v2 only)
+    if (caps$has_n_cycle && "litter_organic_nitrogen_content" %in% ic.names) {
+      param[which(param[, 1] == "litterOrgNInit"), 2] <-
+        PEcAn.utils::ud_convert(IC$litter_organic_nitrogen_content, "kg m-2", "g m-2")
+    } else if (caps$has_n_cycle) {
+      PEcAn.logger::logger.info(
+        "litterOrgNInit not in IC; keeping template default of",
+        param[which(param[, 1] == "litterOrgNInit"), 2], "g N m-2"
+      )
+    }
     ## litterWFracInit fraction (v1 only; removed in v2)
     if (caps$has_litterWFracInit &&
         "litter_mass_content_of_water" %in% ic.names &&
@@ -922,7 +942,9 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
         "date_of_budburst",
         "date_of_senescence",
         "Microbial Biomass C",
-        "plantStorageNInit"
+        "plantStorageNInit",
+        "soil_organic_nitrogen_content",
+        "litter_organic_nitrogen_content"
       )
       ic_has_ncvars <- ic_ncvars_to_try %in% names(IC.nc$var)
       names(ic_has_ncvars) <- ic_ncvars_to_try
@@ -981,6 +1003,32 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
       ## soilInit gC/m2
       if ("soil" %in% names(IC.pools)) {
         param[param[, 1] == "soilInit", 2] <- PEcAn.utils::ud_convert(sum(IC.pools$soil), "kg m-2", "g m-2") # BETY: kgC m-2
+      }
+      ## soilOrgNInit gN/m2 (v2 only)
+      if (caps$has_n_cycle && ic_has_ncvars[["soil_organic_nitrogen_content"]]) {
+        soilN <- ncdf4::ncvar_get(IC.nc, "soil_organic_nitrogen_content")
+        if (!is.na(soilN) && is.numeric(soilN)) {
+          param[param[, 1] == "soilOrgNInit", 2] <-
+            PEcAn.utils::ud_convert(sum(soilN), "kg m-2", "g m-2")
+        }
+      } else if (caps$has_n_cycle) {
+        PEcAn.logger::logger.info(
+          "soilOrgNInit not in IC netCDF; keeping template default of",
+          param[which(param[, 1] == "soilOrgNInit"), 2], "g N m-2"
+        )
+      }
+      ## litterOrgNInit gN/m2 (v2 only)
+      if (caps$has_n_cycle && ic_has_ncvars[["litter_organic_nitrogen_content"]]) {
+        litterN <- ncdf4::ncvar_get(IC.nc, "litter_organic_nitrogen_content")
+        if (!is.na(litterN) && is.numeric(litterN)) {
+          param[param[, 1] == "litterOrgNInit", 2] <-
+            PEcAn.utils::ud_convert(litterN, "kg m-2", "g m-2")
+        }
+      } else if (caps$has_n_cycle) {
+        PEcAn.logger::logger.info(
+          "litterOrgNInit not in IC netCDF; keeping template default of",
+          param[which(param[, 1] == "litterOrgNInit"), 2], "g N m-2"
+        )
       }
       ## soilWFracInit fraction
       if (ic_has_ncvars[["SoilMoistFrac"]]) {

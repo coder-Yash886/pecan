@@ -115,6 +115,73 @@ test_that("write.config.SIPNET plantStorageNInit precedence in v2", {
   expect_match(param_ic_val, "plantStorageNInit 12.5", fixed = TRUE, all = FALSE)
 })
 
+test_that("write.config.SIPNET soilOrgNInit and litterOrgNInit precedence in v2", {
+  pth <- withr::local_tempdir()
+
+  s_v2 <- PEcAn.settings::as.Settings(
+    list(
+      outdir = file.path(pth, "out"),
+      rundir = file.path(pth, "run"),
+      pfts = list(pft1 = list()),
+      model = list(binary = "", revision = "2.0"),
+      run = list(
+        site = list(name = "site1", lat = 40, lon = -88),
+        inputs = list(met = list(path = "")),
+        start.date = "2025-01-01",
+        end.date = "2025-01-02"
+      ),
+      host = list(
+        name = "",
+        outdir = file.path(pth, "out"),
+        rundir = file.path(pth, "run")
+      )
+    )
+  )
+
+  # 1. Template defaults (135, 14) preserved when no IC nitrogen is provided
+  dir.create(file.path(pth, "run", "run_v2_n_default"), recursive = TRUE)
+  write.config.SIPNET(
+    defaults = list(pft1 = list(constants = list())),
+    trait.values = list(pft1 = list()),
+    settings = s_v2,
+    run.id = "run_v2_n_default"
+  )
+  param_default <- readLines(file.path(pth, "run", "run_v2_n_default", "sipnet.param"))
+  expect_match(param_default, "soilOrgNInit 135",   fixed = TRUE, all = FALSE)
+  expect_match(param_default, "litterOrgNInit 14",  fixed = TRUE, all = FALSE)
+
+  # 2. Explicit zero (intentional bare / nitrogen-limited start) is respected
+  dir.create(file.path(pth, "run", "run_v2_n_zero"), recursive = TRUE)
+  write.config.SIPNET(
+    defaults = list(pft1 = list(constants = list())),
+    trait.values = list(pft1 = list()),
+    settings = s_v2,
+    run.id = "run_v2_n_zero",
+    IC = list(
+      soil_organic_nitrogen_content   = 0,   # kg N m-2 -> 0 g N m-2
+      litter_organic_nitrogen_content = 0
+    )
+  )
+  param_zero <- readLines(file.path(pth, "run", "run_v2_n_zero", "sipnet.param"))
+  expect_match(param_zero, "soilOrgNInit 0",   fixed = TRUE, all = FALSE)
+  expect_match(param_zero, "litterOrgNInit 0", fixed = TRUE, all = FALSE)
+
+  # 3. Explicit non-zero values are correctly unit-converted (kg -> g) and written
+  dir.create(file.path(pth, "run", "run_v2_n_val"), recursive = TRUE)
+  write.config.SIPNET(
+    defaults = list(pft1 = list(constants = list())),
+    trait.values = list(pft1 = list()),
+    settings = s_v2,
+    run.id = "run_v2_n_val",
+    IC = list(
+      soil_organic_nitrogen_content   = 0.15,  # kg N m-2 -> 150 g N m-2
+      litter_organic_nitrogen_content = 0.02   # kg N m-2 ->  20 g N m-2
+    )
+  )
+  param_val <- readLines(file.path(pth, "run", "run_v2_n_val", "sipnet.param"))
+  expect_match(param_val, "soilOrgNInit 150",  fixed = TRUE, all = FALSE)
+  expect_match(param_val, "litterOrgNInit 20", fixed = TRUE, all = FALSE)
+})
 
 
 test_that("update_flag_lines", {

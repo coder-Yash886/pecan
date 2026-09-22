@@ -9,6 +9,10 @@
     condition, set from the IC layer like the other Init parameters.
 * For SIPNET v2, `write.config.SIPNET` now sets `plantStorageNInit` from initial conditions
     (`IC` argument or poolinitcond file) if provided (#4114, @coder-Yash886).
+* For SIPNET v2, `write.config.SIPNET` now sets `soilOrgNInit` and `litterOrgNInit`
+    from initial conditions (`IC` argument or poolinitcond file) if provided (#4116,
+    @coder-Yash886). When the IC carries no nitrogen, the template defaults are kept
+    and logged so the situation is visible rather than silent.
 * More flexible handling of Sipnet "restart" files (checkpoints containing full
   model state at the end of the run):
     - New setting `settings$model$copy.restart` is a logical runtime flag
