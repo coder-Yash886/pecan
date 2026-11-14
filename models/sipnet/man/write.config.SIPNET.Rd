@@ -95,10 +95,6 @@ ANAEROBIC = 1
 ...though not necessarily in this order. If the \code{sipnet.in} template already
 defines an option specified in settings$model$options, its value will be
 updated in place; options not already in the file will be added to the bottom.
-
-For SIPNET v2, \code{plantStorageNInit} comes from template value unless the
-initial conditions (\code{IC} argument or the poolinitcond file) supply it, in
-which case that value is used, including zero.
 }
 
 \author{

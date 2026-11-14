@@ -62,10 +62,6 @@
 #' defines an option specified in settings$model$options, its value will be
 #' updated in place; options not already in the file will be added to the bottom.
 #'
-#' For SIPNET v2, `plantStorageNInit` comes from template value unless the
-#' initial conditions (`IC` argument or the poolinitcond file) supply it, in
-#' which case that value is used, including zero.
-#'
 #' @param defaults nested list of named constant parameter values. The
 #' structure is `list(list(constants = list(trait1 = <value>, trait2 = <value>, ...)))`.
 #' Only `defaults[[1]]$constants` is used; all other elements are silently ignored.
@@ -908,7 +904,12 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
       )
     }
     
-    IC.pools <- PEcAn.data.land::prepare_pools(IC.path, constants = list(sla = SLA))
+    # prepare_pools wants SLA per kg C. Take it from the leafCSpWt written
+    # above, so laiInit * leafCSpWt gives back the IC leaf carbon
+    sla_c <- PEcAn.utils::ud_convert(
+      1 / param[param[, 1] == "leafCSpWt", 2], "m2 g-1", "m2 kg-1"
+    )
+    IC.pools <- PEcAn.data.land::prepare_pools(IC.path, constants = list(sla = sla_c))
     
     if (!is.null(IC.pools)) {
       IC.nc <- ncdf4::nc_open(IC.path) #for additional variables specific to SIPNET
